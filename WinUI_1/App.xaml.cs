@@ -8,6 +8,7 @@ using WinUI_1.Core.Contracts.Services;
 using WinUI_1.Core.Services;
 using WinUI_1.Helpers;
 using WinUI_1.Models;
+using WinUI_1.Notifications;
 using WinUI_1.Services;
 using WinUI_1.ViewModels;
 using WinUI_1.Views;
@@ -55,8 +56,10 @@ public partial class App : Application
             services.AddTransient<ActivationHandler<LaunchActivatedEventArgs>, DefaultActivationHandler>();
 
             // Other Activation Handlers
+            services.AddTransient<IActivationHandler, AppNotificationActivationHandler>();
 
             // Services
+            services.AddSingleton<IAppNotificationService, AppNotificationService>();
             services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
             services.AddSingleton<IThemeSelectorService, ThemeSelectorService>();
             services.AddTransient<IWebViewService, WebViewService>();
@@ -93,6 +96,8 @@ public partial class App : Application
         }).
         Build();
 
+        App.GetService<IAppNotificationService>().Initialize();
+
         UnhandledException += App_UnhandledException;
     }
 
@@ -105,6 +110,8 @@ public partial class App : Application
     protected async override void OnLaunched(LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
+
+        App.GetService<IAppNotificationService>().Show(string.Format("AppNotificationSamplePayload".GetLocalized(), AppContext.BaseDirectory));
 
         await App.GetService<IActivationService>().ActivateAsync(args);
     }
